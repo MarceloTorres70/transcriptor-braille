@@ -11,21 +11,12 @@ Aquí ocurre el wiring completo de dependencias:
 
 from backend.application.dtos import TranslateTextRequestDTO, ErrorResponseDTO
 from backend.application.use_cases import TranslateTextToBrailleUseCase, GetSupportedCharsUseCase
-from backend.infrastructure.spanish_braille_dictionary import SpanishBrailleDictionary
-
-
-def build_dependencies() -> dict:
-    dictionary = SpanishBrailleDictionary()
-    return {
-        "translate": TranslateTextToBrailleUseCase(dictionary=dictionary),
-        "supported_chars": GetSupportedCharsUseCase(dictionary=dictionary),
-    }
 
 
 class BrailleController:
-    def __init__(self, deps: dict | None = None) -> None:
-        if deps is None:
-            deps = build_dependencies()
+    def __init__(self, deps: dict) -> None:
+        if not deps:
+            raise ValueError("deps is required and must be injected from composition root")
         self._translate_uc: TranslateTextToBrailleUseCase = deps["translate"]
         self._supported_uc: GetSupportedCharsUseCase = deps["supported_chars"]
 
