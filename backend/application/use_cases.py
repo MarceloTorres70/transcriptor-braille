@@ -7,6 +7,8 @@ NUNCA se importa SpanishBrailleDictionary ni ninguna clase de infrastructure.
 La implementación concreta llega por inyección de dependencias.
 """
 
+from typing import Optional
+
 from backend.domain.braille_dictionary_port import BrailleDictionaryPort
 from backend.domain.braille_symbol import BrailleSymbol, SymbolType
 from backend.application.dtos import (
@@ -95,7 +97,7 @@ class TranslateTextToBrailleUseCase:
 
         return result, unsupported
 
-    def _get_numeric_prefix(self) -> BrailleSymbol | None:
+    def _get_numeric_prefix(self) -> Optional[BrailleSymbol]:
         """
         Obtiene el prefijo numérico del diccionario si lo expone,
         de lo contrario lo busca por su token convencional '#'.
