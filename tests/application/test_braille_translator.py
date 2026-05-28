@@ -1,188 +1,110 @@
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 import pytest
-from backend.application.braille_translator import BrailleTranslator
-from backend.domain.braille_dictionary import BrailleDictionary
+from backend.infrastructure.spanish_braille_dictionary import SpanishBrailleDictionary
+from backend.application.use_cases import TranslateTextToBrailleUseCase
+from backend.application.dtos import TranslateTextRequestDTO
+from backend.domain.braille_symbol import SymbolType
 
 
-class TestBrailleTranslator:
-    """Tests para el servicio de traducción Braille."""
-    
-    @pytest.fixture
-    def translator(self):
-        return BrailleTranslator()
-    
-    def test_translator_initialization(self, translator):
-        assert translator is not None
-        assert translator.dictionary is not None
-    
-    # Tests de traducción de caracteres individuales
-    def test_translate_lowercase_a(self, translator):
-        result = translator.translate_character('a')
-        assert result is not None
-        assert result == '\u2801'  # Braille 'a'
-    
-    def test_translate_lowercase_b(self, translator):
-        result = translator.translate_character('b')
-        assert result is not None
-        assert result == '\u2803'  # Braille 'b'
-    
-    def test_translate_uppercase_a(self, translator):
-        result = translator.translate_character('A')
-        assert result is not None
-        # Debe tener dos caracteres: prefijo + letra
-        assert len(result) == 2
-        assert result[0] == '\u2820'  # Prefijo de mayúscula (punto 6)
-        assert result[1] == '\u2801'  # Braille 'a'
-    
-    def test_translate_uppercase_b(self, translator):
-        result = translator.translate_character('B')
-        assert result is not None
-        assert len(result) == 2
-        assert result[0] == '\u2820'  # Prefijo
-        assert result[1] == '\u2803'  # Braille 'b'
-    
-    def test_translate_spanish_enye(self, translator):
-        result = translator.translate_character('ñ')
-        assert result is not None
-    
-    def test_translate_unsupported_character(self, translator):
-        result = translator.translate_character('@')
-        assert result is None
-    
-    def test_translate_empty_string(self, translator):
-        result = translator.translate_character('')
-        assert result is None
-    
-    def test_translate_multi_char_string(self, translator):
-        result = translator.translate_character('ab')
-        assert result is None
-    
-    # Tests de traducción de texto
-    def test_translate_text_simple_lowercase(self, translator):
-        result = translator.translate_text('abc')
-        assert result is not None
-        assert len(result) > 0
-        assert '\u2801' in result  # 'a'
-    
-    def test_translate_text_mixed_case(self, translator):
-        result = translator.translate_text('Aa')
-        assert result is not None
-        # Debe contener prefijo de mayúscula
-        assert '\u2820' in result
-    
-    def test_translate_text_with_spaces(self, translator):
-        result = translator.translate_text('a b')
-        assert result is not None
-        assert ' ' in result  # Espacios se preservan
-    
-    def test_translate_text_empty(self, translator):
-        result = translator.translate_text('')
-        assert result == ''
-    
-    def test_translate_text_only_spaces(self, translator):
-        result = translator.translate_text('   ')
-        assert result == '   '
-    
-    def test_translate_text_with_unsupported_chars(self, translator):
-        # Las palabras con caracteres no soportados saltan esos caracteres
-        result = translator.translate_text('a@b')
-        assert result is not None
-        # Debe contener braille para 'a' y 'b'
-        assert '\u2801' in result
-        # '@' debe ser ignorado
-    
-    # Tests de metadata
-    def test_translate_with_metadata_single_char(self, translator):
-        result = translator.translate_with_metadata('a')
-        assert len(result) == 1
-        char, symbol, unicode_br = result[0]
-        assert char == 'a'
-        assert symbol is not None
-        assert unicode_br is not None
-    
-    def test_translate_with_metadata_includes_spaces(self, translator):
-        result = translator.translate_with_metadata('a b')
-        assert len(result) == 3
-        assert result[1] == (' ', None, ' ')  # Espacio en posición 1
-        assert result[2][0] == 'b'  # Letra 'b' en posición 2
-    
-    # Tests de soporte de caracteres
-    def test_supports_lowercase(self, translator):
-        assert translator.supports_character('a')
-        assert translator.supports_character('z')
-    
-    def test_supports_uppercase(self, translator):
-        assert translator.supports_character('A')
-        assert translator.supports_character('Z')
-    
-    def test_supports_space(self, translator):
-        assert translator.supports_character(' ')
-    
-    def test_not_supports_digit(self, translator):
-        assert not translator.supports_character('1')
-    
-    def test_not_supports_special_char(self, translator):
-        assert not translator.supports_character('@')
-    
-    def test_supports_spanish_enye(self, translator):
-        assert translator.supports_character('ñ')
-    
-    # Tests de caracteres no soportados
-    def test_get_unsupported_characters_empty(self, translator):
-        result = translator.get_unsupported_characters('abc')
-        assert len(result) == 0
-    
-    def test_get_unsupported_characters_with_digits(self, translator):
-        result = translator.get_unsupported_characters('a1b2')
-        assert '1' in result
-        assert '2' in result
-        assert 'a' not in result
-        assert 'b' not in result
-    
-    def test_get_unsupported_characters_ignores_spaces(self, translator):
-        result = translator.get_unsupported_characters('a b')
-        assert ' ' not in result
-    
-    def test_get_unsupported_characters_special_symbols(self, translator):
-        result = translator.get_unsupported_characters('a@b#c')
-        assert '@' in result
-        assert '#' in result
+@pytest.fixture
+def dic():
+    return SpanishBrailleDictionary()
+
+@pytest.fixture
+def uc(dic):
+    return TranslateTextToBrailleUseCase(dictionary=dic)
 
 
-class TestBrailleTranslatorIntegration:
-    """Tests de integración para traducción Braille."""
-    
-    def test_translate_hello_world(self):
-        translator = BrailleTranslator()
-        result = translator.translate_text('Hola mundo')
-        assert result is not None
-        assert len(result) > 0
-        # Debe contener el prefijo de mayúscula para 'H'
-        assert '\u2820' in result
-    
-    def test_translate_all_lowercase_alphabet(self):
-        translator = BrailleTranslator()
-        alphabet = 'abcdefghijklmnopqrstuvwxyz'
-        result = translator.translate_text(alphabet)
-        assert result is not None
-        assert len(result) == 26  # 26 caracteres únicos
-    
-    def test_translate_all_uppercase_alphabet(self):
-        translator = BrailleTranslator()
-        alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        result = translator.translate_text(alphabet)
-        assert result is not None
-        # Cada mayúscula son 2 caracteres Braille: prefijo + letra
-        assert len(result) == 52
-    
-    def test_translate_with_spanish_characters(self):
-        translator = BrailleTranslator()
-        result = translator.translate_text('niño')
-        assert result is not None
-        unsupported = translator.get_unsupported_characters('niño')
-        assert len(unsupported) == 0
-    
-    def test_translate_spanish_sentence(self):
-        translator = BrailleTranslator()
-        result = translator.translate_text('El niño español')
-        assert result is not None
-        assert ' ' in result  # Espacios preservados
+class TestDictionary:
+    def test_basic_letters(self, dic):
+        for ch in "abcdefghijklmnopqrstuvwxyz":
+            assert dic.contains(ch), f"Falta letra: {ch}"
+
+    def test_enie(self, dic):
+        assert dic.contains("ñ")
+
+    def test_vocales_tildadas(self, dic):
+        for ch in "áéíóúü":
+            assert dic.contains(ch), f"Falta tildada: {ch}"
+
+    def test_digits(self, dic):
+        for d in "0123456789":
+            assert dic.contains(d), f"Falta dígito: {d}"
+
+    def test_math_signs(self, dic):
+        for s in "+-*/=":
+            assert dic.contains(s), f"Falta signo: {s}"
+
+    def test_parentheses(self, dic):
+        assert dic.contains("(")
+        assert dic.contains(")")
+
+    def test_numeric_prefix_exists(self, dic):
+        assert dic.numeric_prefix is not None
+        assert dic.numeric_prefix.symbol_type == SymbolType.PREFIX
+
+    def test_capital_prefix_exists(self, dic):
+        assert dic.capital_prefix is not None
+        assert dic.capital_prefix.symbol_type == SymbolType.PREFIX
+
+    def test_uppercase_sequence_has_prefix(self, dic):
+        seq = dic.get_symbol_sequence_for_text("A")
+        assert len(seq) == 2
+        assert seq[0].symbol_type == SymbolType.PREFIX  # capital prefix
+        assert seq[1].symbol_type == SymbolType.LETTER
+
+    def test_lowercase_sequence_no_prefix(self, dic):
+        seq = dic.get_symbol_sequence_for_text("a")
+        assert len(seq) == 1
+
+
+class TestUseCase:
+    def test_simple_word(self, uc):
+        res = uc.execute(TranslateTextRequestDTO("hola"))
+        assert res.success
+        assert res.braille_output != ""
+
+    def test_uppercase_prefix_in_output(self, uc):
+        res = uc.execute(TranslateTextRequestDTO("A"))
+        # Prefijo mayúscula (puntos 4,6) → U+2828 (⠨)
+        assert "⠨" in res.braille_output
+
+    def test_number_block_single_prefix(self, uc):
+        res = uc.execute(TranslateTextRequestDTO("123"))
+        numeric_prefix_unicode = "\u283c"  # puntos 3,4,5,6
+        assert res.braille_output.count(numeric_prefix_unicode) == 1
+
+    def test_two_number_blocks_two_prefixes(self, uc):
+        res = uc.execute(TranslateTextRequestDTO("1a2"))
+        numeric_prefix_unicode = "\u283c"
+        assert res.braille_output.count(numeric_prefix_unicode) == 2
+
+    def test_empty_text_fails(self, uc):
+        res = uc.execute(TranslateTextRequestDTO(""))
+        assert not res.success
+        assert res.error
+
+    def test_metadata_coverage(self, uc):
+        res = uc.execute(TranslateTextRequestDTO("hola", include_metadata=True))
+        assert res.metadata.total_chars == 4
+        assert res.metadata.coverage_percentage == 100.0
+
+    def test_unsupported_char_tracked(self, uc):
+        res = uc.execute(TranslateTextRequestDTO("a€b", include_metadata=True))
+        assert "€" in res.metadata.unsupported_chars
+
+    def test_tilde_vowels(self, uc):
+        res = uc.execute(TranslateTextRequestDTO("áéíóú"))
+        assert res.success
+
+    def test_math_expression(self, uc):
+        res = uc.execute(TranslateTextRequestDTO("2+2=4"))
+        assert res.success
+
+    def test_to_dict_structure(self, uc):
+        res = uc.execute(TranslateTextRequestDTO("ok", include_metadata=True))
+        d = res.to_dict()
+        assert all(k in d for k in ["success", "original_text", "braille_output", "error", "metadata"])
+        assert "coverage_percentage" in d["metadata"]
