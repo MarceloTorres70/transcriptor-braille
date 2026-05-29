@@ -12,12 +12,11 @@ class TestBrailleRules:
         res = uc.execute(TranslateTextRequestDTO("1"))
         assert res.braille_output.startswith("⠼")
 
-    def test_uppercase_translation_fails_intentionally(self):
-        # Alejo: Implementando el test que falla intencionalmente
+    def test_uppercase_translation_uses_prefix(self):
         dic = SpanishBrailleDictionary()
         uc = TranslateTextToBrailleUseCase(dic)
         res = uc.execute(TranslateTextRequestDTO("B"))
-        
-        # El sistema real devuelve '⠨⠃', pero nosotros esperamos erróneamente '⠃'
-        assert res.braille_output == "⠃", "FALLO INTENCIONAL: Se esperaba '⠃' (sin prefijo) pero el sistema usa prefijos"
+
+        # Verifica comportamiento correcto: mayúscula con prefijo + letra
+        assert res.braille_output == "⠨⠃"
 

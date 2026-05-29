@@ -15,13 +15,22 @@ def translator():
     return TranslateTextToBrailleUseCase(SpanishBrailleDictionary())
 
 def test_lowercase_alphabet_coverage(translator):
-    """Prueba la cobertura completa de letras minúsculas (a-z)."""
-    alphabet = "abcdefghijklmnopqrstuvwxyz"
-    res = translator.execute(TranslateTextRequestDTO(alphabet, include_metadata=True))
-    
-    assert res.success, "La traducción del alfabeto falló"
-    assert res.metadata.unsupported_chars == [], f"Caracteres no soportados encontrados: {res.metadata.unsupported_chars}"
-    assert len(res.braille_output) == len(alphabet), "La longitud del output no coincide con el alfabeto"
+    """Prueba exacta de mapeo Braille para cada letra minúscula (a-z)."""
+    expected_map = {
+        "a": "⠁", "b": "⠃", "c": "⠉", "d": "⠙", "e": "⠑",
+        "f": "⠋", "g": "⠛", "h": "⠓", "i": "⠊", "j": "⠚",
+        "k": "⠅", "l": "⠇", "m": "⠍", "n": "⠝", "o": "⠕",
+        "p": "⠏", "q": "⠟", "r": "⠗", "s": "⠎", "t": "⠞",
+        "u": "⠥", "v": "⠧", "w": "⠺", "x": "⠭", "y": "⠽", "z": "⠵",
+    }
+
+    for letter, expected in expected_map.items():
+        res = translator.execute(TranslateTextRequestDTO(letter, include_metadata=True))
+        assert res.success, f"La traducción de '{letter}' falló"
+        assert res.metadata.unsupported_chars == [], f"'{letter}' fue marcado como no soportado"
+        assert res.braille_output == expected, (
+            f"Error de mapeo para '{letter}': se esperaba '{expected}', se obtuvo '{res.braille_output}'"
+        )
 
 def test_special_spanish_characters(translator):
     """Prueba vocales tildadas (á, é, í, ó, ú), la 'ñ', la 'w' y la 'ü'."""

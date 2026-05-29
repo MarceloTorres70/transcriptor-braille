@@ -5,6 +5,9 @@ import pytest
 from backend.infrastructure.spanish_braille_dictionary import SpanishBrailleDictionary
 from backend.application.use_cases import TranslateTextToBrailleUseCase
 from backend.application.dtos import TranslateTextRequestDTO
+from backend.domain.braille_dictionary_port import BrailleDictionaryPort
+from backend.domain.braille_cell import BrailleCell
+from backend.domain.braille_symbol import BrailleSymbol
 from backend.domain.braille_symbol import SymbolType
 
 
@@ -108,3 +111,29 @@ class TestUseCase:
         d = res.to_dict()
         assert all(k in d for k in ["success", "original_text", "braille_output", "error", "metadata"])
         assert "coverage_percentage" in d["metadata"]
+
+    def test_use_case_with_port_stub_isolated(self):
+        class StubBrailleDictionary(BrailleDictionaryPort):
+            def __init__(self):
+                self._table = {
+                    "a": BrailleSymbol("a", BrailleCell((1,)), SymbolType.LETTER),
+                    "b": BrailleSymbol("b", BrailleCell((1, 2)), SymbolType.LETTER),
+                    "#": BrailleSymbol("#", BrailleCell((3, 4, 5, 6)), SymbolType.PREFIX),
+                }
+
+            def get_symbol_for_text(self, token: str):
+                return self._table.get(token)
+
+            def get_symbol_sequence_for_text(self, token: str):
+                symbol = self.get_symbol_for_text(token)
+                return [symbol] if symbol else None
+
+            def contains(self, token: str) -> bool:
+                return token in self._table
+
+        uc_stub = TranslateTextToBrailleUseCase(dictionary=StubBrailleDictionary())
+        res = uc_stub.execute(TranslateTextRequestDTO("abx", include_metadata=True))
+
+        assert res.braille_output == "⠁⠃"
+        assert res.metadata is not None
+        assert "x" in res.metadata.unsupported_chars
