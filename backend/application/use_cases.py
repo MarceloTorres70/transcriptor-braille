@@ -73,8 +73,34 @@ class TranslateTextToBrailleUseCase:
         unsupported: list[str] = []
         in_number_block = False
 
-        for char in text:
+        i = 0
+        while i < len(text):
+            char = text[i]
             is_digit = char.isdigit()
+
+            # Regla de palabra en mayúsculas: secuencias continuas (len >= 2)
+            # se traducen con prefijo doble al inicio y letras sin prefijo individual.
+            if char.isalpha() and char.isupper():
+                j = i
+                while j < len(text) and text[j].isalpha() and text[j].isupper():
+                    j += 1
+
+                uppercase_run = text[i:j]
+                if len(uppercase_run) >= 2:
+                    in_number_block = False
+                    capital_prefix = self._get_capital_prefix()
+                    if capital_prefix:
+                        result.extend([capital_prefix, capital_prefix])
+
+                    for upper_char in uppercase_run:
+                        sequence = self._dict.get_symbol_sequence_for_text(upper_char.lower())
+                        if sequence:
+                            result.extend(sequence)
+                        else:
+                            unsupported.append(upper_char)
+
+                    i = j
+                    continue
 
             # Gestión del bloque numérico
             if is_digit and not in_number_block:
@@ -95,6 +121,8 @@ class TranslateTextToBrailleUseCase:
             else:
                 unsupported.append(char)
 
+            i += 1
+
         return result, unsupported
 
     def _get_numeric_prefix(self) -> Optional[BrailleSymbol]:
@@ -108,6 +136,15 @@ class TranslateTextToBrailleUseCase:
             return self._dict.numeric_prefix  # type: ignore[attr-defined]
         # Fallback: buscar por token '#'
         return self._dict.get_symbol_for_text("#")
+
+    def _get_capital_prefix(self) -> Optional[BrailleSymbol]:
+        """
+        Obtiene el prefijo de mayúscula del diccionario si lo expone,
+        de lo contrario lo busca por su token convencional '^'.
+        """
+        if hasattr(self._dict, "capital_prefix"):
+            return self._dict.capital_prefix  # type: ignore[attr-defined]
+        return self._dict.get_symbol_for_text("^")
 
 
 class GetSupportedCharsUseCase:
