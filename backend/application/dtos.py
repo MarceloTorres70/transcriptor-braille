@@ -39,6 +39,9 @@ class TranslationMetadataDTO:
         return round((self.translated_chars / self.total_chars) * 100, 2)
 
 
+from typing import Optional
+
+
 @dataclass
 class TranslateTextResponseDTO:
     """
@@ -54,8 +57,8 @@ class TranslateTextResponseDTO:
     success: bool
     original_text: str
     braille_output: str
-    metadata: TranslationMetadataDTO | None = None
-    error: str | None = None
+    metadata: Optional[TranslationMetadataDTO] = None
+    error: Optional[str] = None
 
     def to_dict(self) -> dict:
         result = {

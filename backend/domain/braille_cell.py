@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import FrozenSet
+from typing import FrozenSet, Union
 
 
 @dataclass(frozen=True)
@@ -17,7 +17,7 @@ class BrailleCell:
     """
     dots: FrozenSet[int]
 
-    def __init__(self, dots: tuple[int, ...] | set[int] | list[int] | None = None):
+    def __init__(self, dots: Union[tuple[int, ...], set[int], list[int], None] = None):
         if dots is None:
             dots_set = frozenset()
         else:
