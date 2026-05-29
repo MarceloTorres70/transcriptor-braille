@@ -2,8 +2,79 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transcriptor Braille</title>
+    <meta name="description" content="Interfaz de transcripción de español a braille con mock visual y diseño original.">
+    <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-    > </body>
+    <div class="app-shell">
+        <aside class="orbital-rail" aria-hidden="true">
+            <div class="orbital-rail__mark"></div>
+            <div class="orbital-rail__line"></div>
+            <div class="orbital-rail__caption">
+                <span>Español</span>
+                <span>Braille</span>
+            </div>
+        </aside>
+
+        <main class="studio" aria-label="Transcriptor Braille">
+            <section class="hero-card">
+                <div>
+                    <p class="eyebrow">Transcripción accesible</p>
+                    <h1>Convierte texto en braille con una experiencia visual distinta.</h1>
+                </div>
+                <p class="hero-copy">
+                    Escribe tu texto, traduce al instante y revisa el resultado Braille Unicode en la misma vista.
+                </p>
+            </section>
+
+            <section class="workspace">
+                <article class="panel panel--input">
+                    <header class="panel__header">
+                        <div>
+                            <p class="panel__tag">Área de entrada</p>
+                            <h2>Texto en español</h2>
+                        </div>
+                        <span class="panel__badge" id="inputCount">0 caracteres</span>
+                    </header>
+
+                    <label class="field-label" for="sourceText">Escribe o pega aquí tu texto</label>
+                    <textarea id="sourceText" class="text-surface" rows="9" placeholder="Ejemplo: Hola, mundo. 123"></textarea>
+
+                    <div class="toolbar">
+                        <button id="translateButton" class="button button--primary" type="button">Traducir</button>
+                        <button id="clearButton" class="button button--ghost" type="button">Limpiar</button>
+                    </div>
+                </article>
+
+                <article class="panel panel--output">
+                    <header class="panel__header">
+                        <div>
+                            <p class="panel__tag">Salida braille</p>
+                            <h2>Vista Unicode</h2>
+                        </div>
+                        <span class="panel__badge panel__badge--accent" id="translationStatus">Listo para traducir</span>
+                    </header>
+
+                    <div class="result-card" aria-live="polite">
+                        <pre id="brailleOutput" class="braille-output">⠶ ⠛ ⠑</pre>
+                        <div class="result-meta">
+                            <div>
+                                <span class="result-meta__label">Entrada</span>
+                                <strong id="sourcePreview">—</strong>
+                            </div>
+                            <div>
+                                <span class="result-meta__label">Caracteres braille</span>
+                                <strong id="brailleCount">0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="./js/app.js"></script>
+</body>
 </html>
