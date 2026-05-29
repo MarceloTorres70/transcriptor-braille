@@ -35,16 +35,12 @@ El backend de la aplicación proporciona la lógica de transcripción a través 
 3. Active el entorno virtual:
    - En Windows: `venv\Scripts\activate`
    - En Mac/Linux: `source venv/bin/activate`
-4. Instale las dependencias necesarias. Si existe un archivo `requirements.txt`:
+4. Instale las dependencias necesarias. (Actualmente solo se requieren herramientas de testing locales usando `pytest` para la suite de pruebas).
+5. El proyecto está estructurado bajo **Clean Architecture**. Por el momento, la ejecución del backend se valida mediante la suite de pruebas unitarias, mientras se construye el entrypoint de la API. Puede ejecutar las pruebas con:
    ```bash
-   pip install -r requirements.txt
+   pytest
    ```
-   _(Si están usando Flask, sería `pip install flask` o similar)._
-5. Inicie el servidor local:
-   ```bash
-   python app.py
-   ```
-   _La consola indicará que el servidor está corriendo (usualmente en `http://localhost:5000` o `http://127.0.0.1:5000`). ¡No cierre esta terminal!_
+   _La consola indicará el estado de las pruebas unitarias del dominio._
 
 ## 🌐 Paso 3: Ejecución del Frontend
 
