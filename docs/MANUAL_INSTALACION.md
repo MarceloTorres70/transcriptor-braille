@@ -51,4 +51,4 @@ Como la arquitectura del frontend está completamente desacoplada (HTML, CSS y V
 3. Haga doble clic en el archivo `index.html` para abrirlo directamente en su navegador web.
    - _Alternativa recomendada:_ Si usa VS Code, haga clic derecho sobre `index.html` y seleccione **"Open with Live Server"**.
 
-¡Listo! Si su servidor backend está corriendo en la configuración por defecto y abrió el Frontend, ya puede interactuar con la aplicación.
+¡Listo! El frontend puede abrirse y probarse visualmente en local; la validación funcional del backend se realiza mediante pruebas unitarias hasta integrar el entrypoint REST.
