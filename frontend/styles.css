@@ -397,3 +397,12 @@ body::before {
         letter-spacing: 0.12em;
     }
 }
+
+@media print {
+    .braille-output--mirror {
+        transform: scaleX(-1);
+    }
+    .toolbar, .panel--input, .header { 
+        display: none !important; 
+    }
+}

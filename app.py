@@ -35,5 +35,16 @@ def traducir():
     return jsonify(response_body), 200 if result.success else 422
 
 
+@app.post("/api/ocr")
+def ocr():
+    data = request.get_json(silent=True) or {}
+    imagen = data.get("imagen", "")
+
+    if not isinstance(imagen, str) or not imagen:
+        return jsonify({"ok": False, "error": "El campo 'imagen' debe ser un string Base64."}), 400
+
+    return jsonify({"ok": True, "texto": "⠁⠃⠉", "error": None}), 200
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

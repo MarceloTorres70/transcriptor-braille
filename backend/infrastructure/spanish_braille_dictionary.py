@@ -40,7 +40,9 @@ class SpanishBrailleDictionary(BrailleDictionaryPort):
         text="#", cell=_cell(3, 4, 5, 6), symbol_type=SymbolType.PREFIX
     )
     _CAPITAL_PREFIX = BrailleSymbol(
-        text="^", cell=_cell(4, 6), symbol_type=SymbolType.PREFIX
+        text="^",
+        cell=_cell(4, 6),
+        symbol_type=SymbolType.PREFIX,
     )
 
     _TABLE: dict[str, BrailleSymbol] = {
@@ -89,7 +91,7 @@ class SpanishBrailleDictionary(BrailleDictionaryPort):
         "7": BrailleSymbol("7", _cell(1, 2, 4, 5), SymbolType.DIGIT),
         "8": BrailleSymbol("8", _cell(1, 2, 5),    SymbolType.DIGIT),
         "9": BrailleSymbol("9", _cell(2, 4),       SymbolType.DIGIT),
-        "0": BrailleSymbol("0", _cell(2, 4, 5),    SymbolType.DIGIT),
+        "0": BrailleSymbol("0", _cell(2, 4, 5), SymbolType.DIGIT),
         # Signos matemáticos
         "+": BrailleSymbol("+", _cell(2, 3, 5),    SymbolType.MATH_OPERATOR),
         "-": BrailleSymbol("-", _cell(3, 6),       SymbolType.MATH_OPERATOR),
