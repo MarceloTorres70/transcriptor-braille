@@ -20,9 +20,12 @@ const sourceLabel = document.getElementById("sourceLabel");
 const inputHeading = document.getElementById("inputHeading");
 const outputTag = document.getElementById("outputTag");
 const outputHeading = document.getElementById("outputHeading");
+const printReverseButton = document.getElementById("printReverseButton");
+const printSourceText = document.getElementById("printSourceText");
+const printBrailleOutput = document.getElementById("printBrailleOutput");
 
 function setOutputState(result, statusText = "Traducción completada") {
-    brailleOutput.textContent = result.braille || "⠤⠤⠤";
+    brailleOutput.textContent = result.braille || "";
     sourcePreview.textContent = result.text ? result.text.slice(0, 60) : "—";
     brailleCount.textContent = String(result.brailleLength);
     translationStatus.textContent = result.text ? statusText : "Listo para traducir";
@@ -111,6 +114,7 @@ function updateCounters() {
         translationStatus.textContent = "Listo para traducir";
         sourcePreview.textContent = "—";
         brailleCount.textContent = "0";
+        brailleOutput.textContent = "";
     }
 }
 
@@ -131,11 +135,20 @@ swapModeButton.addEventListener("click", () => {
 });
 
 printButton.addEventListener("click", () => {
-    brailleOutput.classList.add("braille-output--mirror");
+    printSourceText.textContent = sourceText.value || "Sin texto";
+    printBrailleOutput.textContent = brailleOutput.textContent || "";
+    printBrailleOutput.classList.remove("braille-output--mirror");
+    window.print();
+});
+printReverseButton.addEventListener("click", () => {
+    printSourceText.textContent = sourceText.value || "Sin texto";
+    printBrailleOutput.textContent = brailleOutput.textContent || "";
+    printBrailleOutput.classList.add("braille-output--mirror");
     window.print();
 });
 window.addEventListener("afterprint", () => {
     brailleOutput.classList.remove("braille-output--mirror");
+    printBrailleOutput.classList.remove("braille-output--mirror");
 });
 
 sourceText.addEventListener("input", updateCounters);
