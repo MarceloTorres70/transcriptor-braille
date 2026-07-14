@@ -1,4 +1,6 @@
-from flask import Flask, jsonify, request
+from pathlib import Path
+
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
 from backend.application.dtos import TranslateTextRequestDTO
@@ -6,7 +8,10 @@ from backend.application.ml.predictor import BraillePredictor
 from backend.application.use_cases import TranslateTextToBrailleUseCase
 from backend.infrastructure.spanish_braille_dictionary import SpanishBrailleDictionary
 
-app = Flask(__name__)
+BASE_DIR = Path(__file__).resolve().parent
+FRONTEND_DIR = BASE_DIR / "frontend"
+
+app = Flask(__name__, static_folder=str(FRONTEND_DIR), static_url_path="")
 CORS(app)
 
 # Composition root: concrete infrastructure injected into application use case.
@@ -15,6 +20,11 @@ translate_use_case = TranslateTextToBrailleUseCase(dictionary=dictionary)
 
 # YOLOv8 Braille OCR — pesos cargados una sola vez al arrancar el servidor.
 predictor = BraillePredictor.get_instance()
+
+
+@app.get("/")
+def home():
+    return send_from_directory(FRONTEND_DIR, "index.html")
 
 
 @app.post("/api/traducir")

@@ -20,9 +20,9 @@ git clone https://github.com/MarceloTorres70/transcriptor-braille.git
 cd transcriptor-braille
 ```
 
-## ⚙️ Paso 2: Configuración del Backend (API REST)
+## ⚙️ Paso 2: Configuración del Backend y Frontend
 
-El backend de la aplicación proporciona la lógica de transcripción a través de una API.
+La aplicación se ejecuta desde un único servidor Flask que expone la interfaz web y la API REST.
 
 1. Navegue hacia el directorio del backend:
    ```bash
@@ -35,8 +35,16 @@ El backend de la aplicación proporciona la lógica de transcripción a través 
 3. Active el entorno virtual:
    - En Windows: `venv\Scripts\activate`
    - En Mac/Linux: `source venv/bin/activate`
-4. Instale las dependencias necesarias. (Actualmente solo se requieren herramientas de testing locales usando `pytest` para la suite de pruebas).
-5. El proyecto está estructurado bajo **Clean Architecture**. Por el momento, la ejecución del backend se valida mediante la suite de pruebas unitarias, mientras se construye el entrypoint de la API. Puede ejecutar las pruebas con:
+4. Instale las dependencias necesarias del entorno activo.
+5. Inicie la aplicación desde la raíz del proyecto:
+   ```bash
+   python app.py
+   ```
+6. Abra la interfaz en el navegador en:
+   ```
+   http://127.0.0.1:5000/
+   ```
+7. El proyecto está estructurado bajo **Clean Architecture**. Puede ejecutar las pruebas con:
    ```bash
    pytest
    ```
@@ -44,11 +52,13 @@ El backend de la aplicación proporciona la lógica de transcripción a través 
 
 ## 🌐 Paso 3: Ejecución del Frontend
 
-Como la arquitectura del frontend está completamente desacoplada (HTML, CSS y Vanilla JavaScript), no se requieren compiladores complejos.
+El frontend está integrado en el servidor Flask, pero también puede abrirse directamente si desea revisar la vista estática.
 
 1. Abra una **nueva pestaña** en su explorador de archivos.
 2. Navegue hacia la carpeta `frontend/` del proyecto.
 3. Haga doble clic en el archivo `index.html` para abrirlo directamente en su navegador web.
    - _Alternativa recomendada:_ Si usa VS Code, haga clic derecho sobre `index.html` y seleccione **"Open with Live Server"**.
+
+Si el servidor Flask ya está activo, la opción recomendada es usar la URL principal del proyecto en `http://127.0.0.1:5000/`, porque esa ruta evita el error 404 y mantiene el frontend y la API en el mismo origen.
 
 ¡Listo! El frontend puede abrirse y probarse visualmente en local; la validación funcional del backend se realiza mediante pruebas unitarias hasta integrar el entrypoint REST.
