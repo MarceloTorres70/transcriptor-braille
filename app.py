@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 from backend.application.dtos import TranslateTextRequestDTO
+from backend.application.ml.predictor import BraillePredictor
 from backend.application.use_cases import TranslateTextToBrailleUseCase
 from backend.infrastructure.spanish_braille_dictionary import SpanishBrailleDictionary
 
@@ -11,6 +12,9 @@ CORS(app)
 # Composition root: concrete infrastructure injected into application use case.
 dictionary = SpanishBrailleDictionary()
 translate_use_case = TranslateTextToBrailleUseCase(dictionary=dictionary)
+
+# YOLOv8 Braille OCR — pesos cargados una sola vez al arrancar el servidor.
+predictor = BraillePredictor.get_instance()
 
 
 @app.post("/api/traducir")
@@ -43,7 +47,12 @@ def ocr():
     if not isinstance(imagen, str) or not imagen:
         return jsonify({"ok": False, "error": "El campo 'imagen' debe ser un string Base64."}), 400
 
-    return jsonify({"ok": True, "texto": "⠁⠃⠉", "error": None}), 200
+    try:
+        image = BraillePredictor.image_from_base64(imagen)
+        texto = predictor.predict(image)
+        return jsonify({"ok": True, "texto": texto, "error": None}), 200
+    except Exception as exc:
+        return jsonify({"ok": False, "texto": "", "error": str(exc)}), 500
 
 
 if __name__ == "__main__":
