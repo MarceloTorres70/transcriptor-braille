@@ -11,8 +11,6 @@ const inputCount = document.getElementById("inputCount");
 const translationStatus = document.getElementById("translationStatus");
 const imageInput = document.getElementById("imageInput");
 const printButton = document.getElementById("printButton");
-const printSourceText = document.getElementById("printSourceText");
-const printBrailleOutput = document.getElementById("printBrailleOutput");
 
 const OCR_API_URL = "http://localhost:5000/api/ocr";
 
@@ -91,13 +89,11 @@ clearButton.addEventListener("click", () => {
 });
 
 printButton.addEventListener("click", () => {
-    printSourceText.textContent = sourceText.value || "Sin texto";
-    printBrailleOutput.textContent = brailleOutput.textContent;
-    printBrailleOutput.classList.add("braille-output--mirror");
+    brailleOutput.classList.add("braille-output--mirror");
     window.print();
 });
 window.addEventListener("afterprint", () => {
-    printBrailleOutput.classList.remove("braille-output--mirror");
+    brailleOutput.classList.remove("braille-output--mirror");
 });
 
 sourceText.addEventListener("input", updateCounters);
