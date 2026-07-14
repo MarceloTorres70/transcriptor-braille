@@ -25,7 +25,8 @@ def traducir():
     if not isinstance(texto, str):
         return jsonify({"ok": False, "error": "El campo 'texto' debe ser string."}), 400
 
-    dto = TranslateTextRequestDTO(text=texto, include_metadata=True)
+    direction = data.get("direction", "es-br")
+    dto = TranslateTextRequestDTO(text=texto, direction=direction, include_metadata=True)
     result = translate_use_case.execute(dto)
 
     response_body = {

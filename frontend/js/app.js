@@ -1,5 +1,8 @@
 import { ConvertToBraillePayload, ConvertToBrailleResult } from "./contracts.js";
 const API_URL = "http://localhost:5000/api/traducir";
+const OCR_API_URL = "http://localhost:5000/api/ocr";
+
+let currentMode = "es-br";
 
 const sourceText = document.getElementById("sourceText");
 const translateButton = document.getElementById("translateButton");
@@ -11,14 +14,42 @@ const inputCount = document.getElementById("inputCount");
 const translationStatus = document.getElementById("translationStatus");
 const imageInput = document.getElementById("imageInput");
 const printButton = document.getElementById("printButton");
-
-const OCR_API_URL = "http://localhost:5000/api/ocr";
+const swapModeButton = document.getElementById("swapModeButton");
+const imageUploadContainer = document.querySelector(".image-upload-container");
+const sourceLabel = document.getElementById("sourceLabel");
+const inputHeading = document.getElementById("inputHeading");
+const outputTag = document.getElementById("outputTag");
+const outputHeading = document.getElementById("outputHeading");
 
 function setOutputState(result, statusText = "Traducción completada") {
     brailleOutput.textContent = result.braille || "⠤⠤⠤";
     sourcePreview.textContent = result.text ? result.text.slice(0, 60) : "—";
     brailleCount.textContent = String(result.brailleLength);
     translationStatus.textContent = result.text ? statusText : "Listo para traducir";
+}
+
+function applyModeUi() {
+    const isReverse = currentMode === "br-es";
+
+    swapModeButton.textContent = isReverse
+        ? "⇄ Traducir Español a Braille"
+        : "⇄ Traducir Braille a Español";
+
+    if (isReverse) {
+        imageUploadContainer.classList.remove("hidden");
+        inputHeading.textContent = "Texto en Braille Unicode";
+        sourceLabel.textContent = "Pega aquí el Braille Unicode o sube una imagen";
+        sourceText.placeholder = "Ejemplo: ⠨⠓⠕⠇⠁";
+        outputTag.textContent = "Salida español";
+        outputHeading.textContent = "Texto traducido";
+    } else {
+        imageUploadContainer.classList.add("hidden");
+        inputHeading.textContent = "Texto en español";
+        sourceLabel.textContent = "Escribe o pega aquí tu texto";
+        sourceText.placeholder = "Ejemplo: Hola, mundo. 123";
+        outputTag.textContent = "Salida braille";
+        outputHeading.textContent = "Vista Unicode";
+    }
 }
 
 async function translate() {
@@ -37,7 +68,10 @@ async function translate() {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ texto: payload.text })
+            body: JSON.stringify({
+                texto: payload.text,
+                direction: currentMode
+            })
         });
 
         const data = await response.json();
@@ -88,6 +122,14 @@ clearButton.addEventListener("click", () => {
     sourceText.focus();
 });
 
+swapModeButton.addEventListener("click", () => {
+    currentMode = currentMode === "es-br" ? "br-es" : "es-br";
+    applyModeUi();
+    sourceText.value = "";
+    updateCounters();
+    setOutputState(new ConvertToBrailleResult({ text: "", braille: "", format: "unicode", sourceLength: 0, brailleLength: 0 }));
+});
+
 printButton.addEventListener("click", () => {
     brailleOutput.classList.add("braille-output--mirror");
     window.print();
@@ -110,16 +152,16 @@ imageInput.addEventListener("change", (event) => {
 
     const reader = new FileReader();
     reader.onload = async (e) => {
-        const base64_string = e.target.result.split(',')[1];
-        
+        const base64_string = e.target.result.split(",")[1];
+
         const response = await fetch(OCR_API_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ "imagen": base64_string })
+            body: JSON.stringify({ imagen: base64_string })
         });
-        
+
         if (response.ok) {
             const data = await response.json();
             sourceText.value = data.texto;
@@ -130,4 +172,5 @@ imageInput.addEventListener("change", (event) => {
     reader.readAsDataURL(file);
 });
 
+applyModeUi();
 updateCounters();
