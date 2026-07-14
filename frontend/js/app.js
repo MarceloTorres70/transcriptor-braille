@@ -11,13 +11,14 @@ const inputCount = document.getElementById("inputCount");
 const translationStatus = document.getElementById("translationStatus");
 const imageInput = document.getElementById("imageInput");
 const printButton = document.getElementById("printButton");
+const printReverseButton = document.getElementById("printReverseButton");
 const printSourceText = document.getElementById("printSourceText");
 const printBrailleOutput = document.getElementById("printBrailleOutput");
 
 const OCR_API_URL = "http://localhost:5000/api/ocr";
 
 function setOutputState(result, statusText = "Traducción completada") {
-    brailleOutput.textContent = result.braille || "⠤⠤⠤";
+    brailleOutput.textContent = result.braille || "";
     sourcePreview.textContent = result.text ? result.text.slice(0, 60) : "—";
     brailleCount.textContent = String(result.brailleLength);
     translationStatus.textContent = result.text ? statusText : "Listo para traducir";
@@ -79,6 +80,7 @@ function updateCounters() {
         translationStatus.textContent = "Listo para traducir";
         sourcePreview.textContent = "—";
         brailleCount.textContent = "0";
+        brailleOutput.textContent = "";
     }
 }
 
@@ -91,6 +93,12 @@ clearButton.addEventListener("click", () => {
 });
 
 printButton.addEventListener("click", () => {
+    printSourceText.textContent = sourceText.value || "Sin texto";
+    printBrailleOutput.textContent = brailleOutput.textContent;
+    window.print();
+});
+
+printReverseButton.addEventListener("click", () => {
     printSourceText.textContent = sourceText.value || "Sin texto";
     printBrailleOutput.textContent = brailleOutput.textContent;
     printBrailleOutput.classList.add("braille-output--mirror");
