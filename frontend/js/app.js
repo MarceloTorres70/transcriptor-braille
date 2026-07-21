@@ -71,7 +71,8 @@ async function translate() {
         const response = await fetch(API_URL, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "ngrok-skip-browser-warning": "true"
             },
             body: JSON.stringify({
                 texto: payload.text,
@@ -173,6 +174,9 @@ async function handleImageUpload(event) {
     try {
         const response = await fetch(OCR_API_URL, {
             method: "POST",
+            headers: {
+                "ngrok-skip-browser-warning": "true"
+            },
             body: formData
         });
 
