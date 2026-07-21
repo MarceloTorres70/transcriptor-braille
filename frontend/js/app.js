@@ -1,6 +1,6 @@
 import { ConvertToBraillePayload, ConvertToBrailleResult } from "./contracts.js";
-const API_URL = "http://localhost:5000/api/traducir";
-const OCR_API_URL = "http://localhost:5000/api/ocr";
+const API_URL = "/api/traducir";
+const OCR_API_URL = "/api/detectar-braille";
 
 let currentMode = "es-br";
 
@@ -13,6 +13,7 @@ const brailleCount = document.getElementById("brailleCount");
 const inputCount = document.getElementById("inputCount");
 const translationStatus = document.getElementById("translationStatus");
 const imageInput = document.getElementById("imageInput");
+const cameraInput = document.getElementById("cameraInput");
 const printButton = document.getElementById("printButton");
 const swapModeButton = document.getElementById("swapModeButton");
 const imageUploadContainer = document.querySelector(".image-upload-container");
@@ -41,7 +42,8 @@ function applyModeUi() {
     if (isReverse) {
         imageUploadContainer.classList.remove("hidden");
         inputHeading.textContent = "Texto en Braille Unicode";
-        sourceLabel.textContent = "Pega aquí el Braille Unicode o sube una imagen";
+        const label = document.getElementById("sourceLabel");
+        if(label) label.textContent = "Subir imagen desde galería o cámara";
         sourceText.placeholder = "Ejemplo: ⠨⠓⠕⠇⠁";
         outputTag.textContent = "Salida español";
         outputHeading.textContent = "Texto traducido";
@@ -159,31 +161,50 @@ sourceText.addEventListener("keydown", (event) => {
     }
 });
 
-imageInput.addEventListener("change", (event) => {
+async function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-        const base64_string = e.target.result.split(",")[1];
+    const formData = new FormData();
+    formData.append("image", file);
 
+    translationStatus.textContent = "Detectando Braille...";
+
+    try {
         const response = await fetch(OCR_API_URL, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ imagen: base64_string })
+            body: formData
         });
 
         if (response.ok) {
             const data = await response.json();
-            sourceText.value = data.texto;
-            updateCounters();
-            await translate();
+            if (data.success) {
+                // El modelo de Roboflow ya devuelve caracteres latinos (texto).
+                // Mostramos el texto detectado directamente en la caja de salida.
+                sourceText.value = "[Imagen procesada]"; 
+                updateCounters();
+                
+                const result = new ConvertToBrailleResult({
+                    text: "[Imagen procesada]",
+                    braille: data.raw_braille, // En modo br-es, 'braille' contiene la salida traducida
+                    format: "unicode",
+                    sourceLength: 0,
+                    brailleLength: data.raw_braille.length
+                });
+                setOutputState(result, "Traducción desde imagen completada");
+            } else {
+                throw new Error(data.error);
+            }
+        } else {
+            throw new Error("Error en la detección");
         }
-    };
-    reader.readAsDataURL(file);
-});
+    } catch (e) {
+        translationStatus.textContent = `Error: ${e.message}`;
+    }
+}
+
+imageInput.addEventListener("change", handleImageUpload);
+cameraInput.addEventListener("change", handleImageUpload);
 
 applyModeUi();
 updateCounters();

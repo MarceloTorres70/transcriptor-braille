@@ -115,7 +115,7 @@ body::before {
     display: grid;
     grid-template-columns: 1.5fr 1fr;
     gap: 24px;
-    align-items: end;
+    align-items: center;
 }
 
 .eyebrow,
@@ -454,4 +454,24 @@ body::before {
 
 .hidden {
     display: none !important;
+}
+
+.hidden-file-input {
+    display: none !important;
+}
+
+.upload-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.upload-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 18px;
+    font-size: 0.95rem;
 }

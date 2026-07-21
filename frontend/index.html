@@ -43,8 +43,18 @@
                     <textarea id="sourceText" class="text-surface" rows="9" placeholder="Ejemplo: Hola, mundo. 123"></textarea>
 
                     <div class="image-upload-container hidden">
-                        <label class="field-label" for="imageInput">Subir imagen</label>
-                        <input id="imageInput" type="file" accept="image/*" class="file-input" />
+                        <p class="field-label" id="sourceLabel">Subir imagen desde galería o cámara</p>
+                        <div class="upload-buttons">
+                            <label for="imageInput" class="button button--ghost upload-button">
+                                📁 Elegir archivo
+                            </label>
+                            <input id="imageInput" type="file" accept="image/*" class="hidden-file-input" />
+
+                            <label for="cameraInput" class="button button--primary upload-button">
+                                📷 Tomar foto
+                            </label>
+                            <input id="cameraInput" type="file" accept="image/*" capture="environment" class="hidden-file-input" />
+                        </div>
                     </div>
 
                     <div class="toolbar">
