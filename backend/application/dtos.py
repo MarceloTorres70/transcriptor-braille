@@ -12,10 +12,11 @@ from dataclasses import dataclass, field
 @dataclass
 class TranslateTextRequestDTO:
     """
-    POST /api/translate
-    { "text": "Hola 123", "include_metadata": true }
+    POST /api/traducir
+    { "texto": "Hola 123", "direction": "es-br", "include_metadata": true }
     """
     text: str
+    direction: str = "es-br"
     include_metadata: bool = False
 
     def is_valid(self) -> tuple[bool, str]:
@@ -23,6 +24,8 @@ class TranslateTextRequestDTO:
             return False, "El texto no puede estar vacío."
         if len(self.text) > 5000:
             return False, "El texto no puede superar los 5000 caracteres."
+        if self.direction not in ("es-br", "br-es"):
+            return False, "El campo 'direction' debe ser 'es-br' o 'br-es'."
         return True, ""
 
 

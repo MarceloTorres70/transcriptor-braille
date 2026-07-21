@@ -34,35 +34,49 @@
                     <header class="panel__header">
                         <div>
                             <p class="panel__tag">Área de entrada</p>
-                            <h2>Texto en español</h2>
+                            <h2 id="inputHeading">Texto en español</h2>
                         </div>
                         <span class="panel__badge" id="inputCount">0 caracteres</span>
                     </header>
 
-                    <label class="field-label" for="sourceText">Escribe o pega aquí tu texto</label>
+                    <label class="field-label" for="sourceText" id="sourceLabel">Escribe o pega aquí tu texto</label>
                     <textarea id="sourceText" class="text-surface" rows="9" placeholder="Ejemplo: Hola, mundo. 123"></textarea>
 
-                    <label class="field-label" for="imageInput">Subir imagen</label>
-                    <input id="imageInput" type="file" accept="image/*" class="file-input" />
+                    <div class="image-upload-container hidden">
+                        <p class="field-label" id="sourceLabel">Subir imagen desde galería o cámara</p>
+                        <div class="upload-buttons">
+                            <label for="imageInput" class="button button--ghost upload-button">
+                                📁 Elegir archivo
+                            </label>
+                            <input id="imageInput" type="file" accept="image/*" class="hidden-file-input" />
+
+                            <label for="cameraInput" class="button button--primary upload-button">
+                                📷 Tomar foto
+                            </label>
+                            <input id="cameraInput" type="file" accept="image/*" capture="environment" class="hidden-file-input" />
+                        </div>
+                    </div>
 
                     <div class="toolbar">
+                        <button id="swapModeButton" class="button button--ghost" type="button">⇄ Traducir Braille a Español</button>
                         <button id="translateButton" class="button button--primary" type="button">Traducir</button>
                         <button id="clearButton" class="button button--ghost" type="button">Limpiar</button>
                         <button id="printButton" class="button button--ghost" type="button">Imprimir</button>
+                        <button id="printReverseButton" class="button button--ghost" type="button">Imprimir en reverso</button>
                     </div>
                 </article>
 
                 <article class="panel panel--output">
                     <header class="panel__header">
                         <div>
-                            <p class="panel__tag">Salida braille</p>
-                            <h2>Vista Unicode</h2>
+                            <p class="panel__tag" id="outputTag">Salida braille</p>
+                            <h2 id="outputHeading">Vista Unicode</h2>
                         </div>
                         <span class="panel__badge panel__badge--accent" id="translationStatus">Listo para traducir</span>
                     </header>
 
                     <div class="result-card" aria-live="polite">
-                        <pre id="brailleOutput" class="braille-output">⠶ ⠛ ⠑</pre>
+                        <pre id="brailleOutput" class="braille-output"></pre>
                         <div class="result-meta">
                             <div>
                                 <span class="result-meta__label">Entrada</span>
@@ -77,6 +91,17 @@
                 </article>
             </section>
         </main>
+    </div>
+    <div class="print-only">
+        <h1>Transcriptor Braille</h1>
+        <div class="print-section">
+            <h2>Texto de Entrada:</h2>
+            <div id="printSourceText"></div>
+        </div>
+        <div class="print-section">
+            <h2>Salida Braille:</h2>
+            <pre id="printBrailleOutput"></pre>
+        </div>
     </div>
 
     <script type="module" src="./js/app.js"></script>

@@ -17,17 +17,18 @@ from backend.application.dtos import (
     TranslationMetadataDTO,
 )
 
+_CAPITAL_PREFIX_UNICODE = "\u2828"  # ⠨ puntos (4, 6)
+_NUMERIC_PREFIX_UNICODE = "\u283c"  # ⠼ puntos (3, 4, 5, 6)
+_BRAILLE_SPACE = "\u2800"
+
 
 class TranslateTextToBrailleUseCase:
     """
-    Caso de Uso: Traduce texto español → Braille.
+    Caso de Uso: Traduce texto español ↔ Braille según request.direction.
 
-    Reglas de negocio:
-    1. Mayúsculas    → get_symbol_sequence_for_text ya antepone el prefijo (^)
-    2. Bloque numérico → prefijo ⠼ se inserta al abrir el bloque;
-                         se cierra con cualquier carácter no-dígito
-    3. Caracteres sin soporte → omitidos, registrados en metadatos
-    4. Espacio → celda vacía Braille
+    Direcciones:
+      - "es-br" (default): español → Braille Unicode
+      - "br-es": Braille Unicode → español
     """
 
     def __init__(self, dictionary: BrailleDictionaryPort) -> None:
@@ -44,8 +45,11 @@ class TranslateTextToBrailleUseCase:
                 error=error_msg,
             )
 
-        symbols, unsupported = self._translate(request.text)
-        braille_output = "".join(s.to_unicode() for s in symbols)
+        if request.direction == "br-es":
+            output, unsupported = self._translate_braille_to_text(request.text)
+        else:
+            symbols, unsupported = self._translate(request.text)
+            output = "".join(s.to_unicode() for s in symbols)
 
         metadata = None
         if request.include_metadata:
@@ -56,14 +60,14 @@ class TranslateTextToBrailleUseCase:
             )
 
         return TranslateTextResponseDTO(
-            success=bool(braille_output),
+            success=bool(output),
             original_text=request.text,
-            braille_output=braille_output,
+            braille_output=output,
             metadata=metadata,
         )
 
     # ──────────────────────────────────────────────────────
-    # Algoritmo de traducción
+    # Español → Braille
     # ──────────────────────────────────────────────────────
 
     def _translate(
@@ -104,8 +108,6 @@ class TranslateTextToBrailleUseCase:
 
             # Gestión del bloque numérico
             if is_digit and not in_number_block:
-                # Accedemos al prefijo numérico a través del puerto
-                # (el puerto concreto lo expone; si no lo expone usamos contains)
                 numeric_prefix = self._get_numeric_prefix()
                 if numeric_prefix:
                     result.append(numeric_prefix)
@@ -113,7 +115,6 @@ class TranslateTextToBrailleUseCase:
             elif not is_digit:
                 in_number_block = False
 
-            # Obtener secuencia de símbolos (maneja mayúsculas internamente)
             sequence = self._dict.get_symbol_sequence_for_text(char)
 
             if sequence:
@@ -125,23 +126,75 @@ class TranslateTextToBrailleUseCase:
 
         return result, unsupported
 
+    # ──────────────────────────────────────────────────────
+    # Braille → Español
+    # ──────────────────────────────────────────────────────
+
+    def _translate_braille_to_text(
+        self, braille: str
+    ) -> tuple[str, list[str]]:
+        result: list[str] = []
+        unsupported: list[str] = []
+        capitalized_next = False
+        all_caps_word = False
+        number_mode = False
+
+        i = 0
+        while i < len(braille):
+            char = braille[i]
+
+            if char == _CAPITAL_PREFIX_UNICODE:
+                if i + 1 < len(braille) and braille[i + 1] == _CAPITAL_PREFIX_UNICODE:
+                    all_caps_word = True
+                    i += 2
+                    continue
+                capitalized_next = True
+                i += 1
+                continue
+
+            if char == _NUMERIC_PREFIX_UNICODE:
+                number_mode = True
+                i += 1
+                continue
+
+            if char in (" ", _BRAILLE_SPACE, "\n"):
+                result.append(" " if char != "\n" else "\n")
+                all_caps_word = False
+                number_mode = False
+                i += 1
+                continue
+
+            symbol_type = SymbolType.DIGIT if number_mode else None
+            symbol = self._lookup_by_unicode(char, symbol_type)
+
+            if symbol is not None:
+                text = symbol.text
+                if all_caps_word or capitalized_next:
+                    text = text.upper()
+                    capitalized_next = False
+                result.append(text)
+            else:
+                unsupported.append(char)
+
+            i += 1
+
+        return "".join(result), unsupported
+
+    def _lookup_by_unicode(
+        self, unicode_char: str, symbol_type: Optional[SymbolType]
+    ) -> Optional[BrailleSymbol]:
+        if hasattr(self._dict, "get_symbol_by_unicode"):
+            return self._dict.get_symbol_by_unicode(  # type: ignore[attr-defined]
+                unicode_char, symbol_type
+            )
+        return None
+
     def _get_numeric_prefix(self) -> Optional[BrailleSymbol]:
-        """
-        Obtiene el prefijo numérico del diccionario si lo expone,
-        de lo contrario lo busca por su token convencional '#'.
-        """
-        # Muchas implementaciones de BrailleDictionaryPort exponen
-        # numeric_prefix como property; lo intentamos con duck typing
         if hasattr(self._dict, "numeric_prefix"):
             return self._dict.numeric_prefix  # type: ignore[attr-defined]
-        # Fallback: buscar por token '#'
         return self._dict.get_symbol_for_text("#")
 
     def _get_capital_prefix(self) -> Optional[BrailleSymbol]:
-        """
-        Obtiene el prefijo de mayúscula del diccionario si lo expone,
-        de lo contrario lo busca por su token convencional '^'.
-        """
         if hasattr(self._dict, "capital_prefix"):
             return self._dict.capital_prefix  # type: ignore[attr-defined]
         return self._dict.get_symbol_for_text("^")

@@ -135,6 +135,23 @@ class SpanishBrailleDictionary(BrailleDictionaryPort):
     def contains(self, token: str) -> bool:
         return token in self._TABLE or token.lower() in self._TABLE
 
+    def get_symbol_by_unicode(
+        self, unicode_char: str, symbol_type=None
+    ) -> Optional[BrailleSymbol]:
+        """Busca un símbolo en el diccionario por su carácter Unicode.
+        Si se especifica symbol_type (ej. SymbolType.DIGIT), prioriza esa coincidencia.
+        """
+        candidates = [
+            sym for sym in self._TABLE.values() if sym.to_unicode() == unicode_char
+        ]
+        if not candidates:
+            return None
+        if symbol_type:
+            for cand in candidates:
+                if cand.symbol_type == symbol_type:
+                    return cand
+        return candidates[0]
+
     @property
     def numeric_prefix(self) -> BrailleSymbol:
         return self._NUMERIC_PREFIX
